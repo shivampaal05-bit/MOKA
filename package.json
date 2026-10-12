@@ -1,0 +1,29 @@
+{
+  "name": "queuebite",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Order, kitchen and live-tracking platform for a single dry-food restaurant",
+  "engines": {
+    "node": ">=22"
+  },
+  "imports": {
+    "#core": "./packages/core/src/index.ts",
+    "#core/*": "./packages/core/src/*.ts",
+    "#api/*": "./apps/api/src/*.ts"
+  },
+  "scripts": {
+    "setup": "node scripts/link-workspaces.mjs",
+    "dev": "node apps/api/src/adapters/node.ts",
+    "start": "NODE_ENV=production node apps/api/src/adapters/node.ts",
+    "demo": "AUTOPILOT=1 SPEED=6 node apps/api/src/adapters/node.ts",
+    "test": "node --test packages/core/test/*.test.ts apps/api/test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "simulate": "node tools/simulator/run.ts",
+    "gen:seed": "node scripts/gen-seed.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

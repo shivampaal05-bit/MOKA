@@ -1,0 +1,9 @@
+{
+  "name": "@queuebite/api",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HTTP layer (fetch handler that runs on Node and Cloudflare Workers) + Node server + storage adapters",
+  "exports": { ".": "./src/app.ts" },
+  "scripts": { "dev": "node src/server.ts" }
+}

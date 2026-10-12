@@ -1,0 +1,1 @@
+{ "name": "@queuebite/simulator", "version": "4.0.0", "private": true, "type": "module", "description": "Replays order scenarios through the real engine under FIFO / Deadline / Smart", "exports": { ".": "./harness.ts" } }

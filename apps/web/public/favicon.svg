@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="16" fill="#654765"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#C6A77E" stroke-width="1.5" stroke-dasharray="2 2"/>
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#C6A77E" stroke-width="1"/>
+  <!-- MOKA Monogram M with coffee bean motif -->
+  <path d="M20 42V22h3.5l8.5 13.5L40.5 22H44v20h-3.5V28.5L33.2 39.5h-2.4L23.5 28.5V42H20z" fill="#F5EFE8"/>
+  <ellipse cx="32" cy="42.5" rx="3.5" ry="2" fill="#C6A77E"/>
+</svg>

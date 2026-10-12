@@ -1,0 +1,23 @@
+// Cloudflare deployment config. PLACEHOLDERS ONLY — no real IDs. Untested here: confirm field names in the current docs.
+// Items marked [verified] were checked against developers.cloudflare.com on 9 Oct 2026; [unverified] were not.
+{
+  "name": "queuebite",
+  "main": "../../apps/api/src/adapters/cloudflare-worker.ts",
+  "compatibility_date": "YYYY-MM-DD",                         // set to the day you deploy
+  "compatibility_flags": ["nodejs_compat"],                   // [unverified] harmless; needed if you add a Postgres driver later
+  "observability": { "enabled": true },                       // [unverified]
+
+  "assets": { "directory": "../../apps/web/public" },         // [unverified] static customer / KDS / counter / owner screens
+
+  // The engine lives in one Durable Object per outlet (single writer). [verified] binding + SQLite-backed migration
+  "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "RestaurantHub" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RestaurantHub"] }]
+
+  // Phase 2 (when the Postgres adapter exists) — uncomment and fill the placeholders:
+  // "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "YOUR_HYPERDRIVE_ID", "localConnectionString": "postgres://USER:PASS@localhost:5432/queuebite" }],   // [verified]
+  // "queues": { "producers": [{ "queue": "YOUR_QUEUE_NAME", "binding": "EVENTS" }],
+  //             "consumers": [{ "queue": "YOUR_QUEUE_NAME", "max_batch_size": 10, "max_retries": 5, "dead_letter_queue": "YOUR_QUEUE_NAME-dlq" }] },    // [verified]
+  // "r2_buckets": [{ "binding": "ARCHIVE", "bucket_name": "YOUR_R2_BUCKET" }]                                                                          // [unverified]
+  //
+  // Secrets are never in this file:  wrangler secret put STAFF_PINS | PAYMENT_WEBHOOK_SECRET | WHATSAPP_TOKEN
+}

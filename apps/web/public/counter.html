@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOKA · Counter &amp; Waiter Terminal</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="nav"></div>
+<div class="wrap" id="root"></div>
+<div id="footer"></div>
+
+<script type="module">
+import { api, sapi, nav, footer, pinGate, esc, rs, hhmm, idem, poll, toast, signOut } from './assets/api.js';
+document.getElementById('nav').innerHTML = nav('counter.html');
+document.getElementById('footer').innerHTML = footer();
+
+pinGate('Counter / Waiter', start);
+
+function start() {
+  const root = document.getElementById('root');
+  let menu = [], cart = {}, mode = 'TAKEAWAY', key = idem(), orders = [], expo = { toPack: [], ready: [] };
+  const checked = {};
+
+  root.innerHTML = `
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr));align-items:start">
+      <!-- Order Creation Column -->
+      <div class="card elevated" style="border-top:3px solid var(--color-primary)">
+        <div class="row" style="margin-bottom:8px">
+          <div>
+            <h2 style="margin:0">Counter Order</h2>
+            <span class="mute" style="font-size:12px">Register walk-in or table order</span>
+          </div>
+          <span class="sp"></span>
+          <button class="alt sm" id="out">Sign Out</button>
+        </div>
+
+        <div class="tabs" id="modes" style="margin-top:8px">
+          <button data-m="TAKEAWAY" class="on">🛍️ Takeaway Counter</button>
+          <button data-m="DINE_IN">🪑 Dine-in Service</button>
+        </div>
+
+        <div id="menu"></div>
+
+        <div class="grid g2" style="margin-top:12px">
+          <div>
+            <label>Customer Name</label>
+            <input id="name" value="Guest" placeholder="Name">
+          </div>
+          <div>
+            <label>Customer Mobile</label>
+            <input id="phone" value="9876543210" inputmode="tel" placeholder="Mobile number">
+          </div>
+        </div>
+
+        <div id="tableBox" style="display:none;margin-top:8px">
+          <label>Assigned Table</label>
+          <input id="table" value="4" placeholder="e.g. 4">
+        </div>
+
+        <div class="row" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--color-line)">
+          <div>
+            <span class="mute" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Subtotal</span>
+            <b id="total" style="display:block;font-size:24px;color:var(--color-primary-dark)">₹0</b>
+          </div>
+          <span class="sp"></span>
+          <button id="place" style="padding:10px 20px">Send to Kitchen</button>
+        </div>
+        <div id="msg"></div>
+      </div>
+
+      <!-- Expo & Handover Column -->
+      <div>
+        <div class="card elevated" style="border-top:3px solid var(--color-accent)">
+          <div class="row" style="margin-bottom:10px">
+            <h2 style="margin:0">MOKA Expo &amp; Packing</h2>
+            <span class="sp"></span>
+            <span class="pill champagne">Quality Check</span>
+          </div>
+          <div id="expo"></div>
+        </div>
+
+        <div class="card elevated">
+          <div class="row" style="margin-bottom:10px">
+            <h2 style="margin:0">Active Service Orders</h2>
+            <span class="sp"></span>
+            <span class="mute" style="font-size:12px">Live queue status</span>
+          </div>
+          <div id="orders" class="list"></div>
+        </div>
+      </div>
+    </div>`;
+
+  const $ = id => document.getElementById(id);
+
+  const paintMenu = () => {
+    $('menu').innerHTML = menu.map(m => `
+      <div class="item">
+        <span class="em">${m.emoji}</span>
+        <div class="nm">
+          ${esc(m.name)}
+          <small>${rs(m.price)}${m.available ? ` · ${m.portionsLeft} portions left` : ' · <b style="color:var(--color-error)">sold out</b>'}</small>
+        </div>
+        <div class="qty">
+          <button class="alt" data-id="${m.id}" data-d="-1">−</button>
+          <b style="min-width:20px;text-align:center;font-size:13px">${cart[m.id] || 0}</b>
+          <button data-id="${m.id}" data-d="1" ${m.available ? '' : 'disabled'}>+</button>
+        </div>
+      </div>
+    `).join('');
+
+    $('total').textContent = rs(menu.reduce((s, m) => s + (cart[m.id] || 0) * m.price, 0));
+    $('tableBox').style.display = mode === 'DINE_IN' ? '' : 'none';
+    document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  };
+
+  $('modes').onclick = e => {
+    const btn = e.target.closest('button');
+    if (btn && btn.dataset.m) {
+      mode = btn.dataset.m;
+      paintMenu();
+    }
+  };
+
+  $('menu').onclick = e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const id = b.dataset.id;
+    if (!id) return;
+    cart[id] = Math.max(0, Math.min(20, (cart[id] || 0) + Number(b.dataset.d)));
+    key = idem();
+    paintMenu();
+  };
+
+  $('out').onclick = signOut;
+
+  $('place').onclick = async () => {
+    const items = Object.entries(cart).filter(([, q]) => q > 0).map(([menuItemId, qty]) => ({ menuItemId, qty }));
+    if (!items.length) return msg('Please add at least one item.', 'err');
+    
+    const body = {
+      channel: 'COUNTER',
+      mode,
+      customer: { name: $('name').value, phone: $('phone').value },
+      items
+    };
+    if (mode === 'DINE_IN') body.table = $('table').value;
+
+    try {
+      const r = await sapi('/staff/orders', { method: 'POST', body, headers: { 'idempotency-key': key } });
+      const o = r.order;
+      msg(`Order dispatched! Token <b>${esc(o.token)}</b> · ready in ${o.eta ? o.eta.lo + '–' + o.eta.hi : '?'} min`, 'ok');
+      cart = {};
+      key = idem();
+      paintMenu();
+      await load();
+    } catch (e) {
+      msg(e.code === 'CAPACITY' ? 
+        `Kitchen capacity reached: expected ready time is ~${e.details?.wouldBeReadyInMin} min.` : 
+        e.code === 'STOCK_SHORT' ? 
+        'Insufficient stock: ' + Object.entries(e.details.short || {}).map(([k, v]) => `${k} (${v.available} left)`).join(', ') : 
+        esc(e.message), 'err');
+    }
+  };
+
+  const msg = (t, c) => $('msg').innerHTML = `<div class="${c}">${t}</div>`;
+
+  const paintExpo = () => {
+    $('expo').innerHTML = (expo.toPack.length ? expo.toPack.map(o => `
+      <div class="tcard">
+        <div class="row">
+          <span class="t">${esc(o.token)}</span>
+          <span class="pill champagne">${o.mode}${o.table ? ' · Table ' + esc(o.table) : ''}</span>
+          <span class="sp"></span>
+          <span class="meta">${esc(o.customer)}</span>
+        </div>
+        <div style="margin:8px 0;padding:6px 0;border-top:1px dashed var(--color-line);border-bottom:1px dashed var(--color-line)">
+          ${o.items.map(i => `
+            <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--color-ink);margin:4px 0;cursor:pointer">
+              <input type="checkbox" style="width:auto;accent-color:var(--color-primary)" data-o="${o.orderId}" data-i="${i.id}" ${checked[o.orderId]?.includes(i.id) ? 'checked' : ''}>
+              <b>${i.qty}×</b> ${esc(i.name)}
+            </label>
+          `).join('')}
+        </div>
+        <div class="row">
+          <button data-ready="${o.orderId}" class="sm">✔ All Packed — READY</button>
+          <span class="sp"></span>
+          ${o.packaging ? '<span class="pill grey">Vented MOKA Box</span>' : '<span class="pill grey">Ceramic Tableware</span>'}
+        </div>
+      </div>
+    `).join('') : '<div class="mute" style="padding:10px 0">No orders pending expo packing.</div>')
+    + (expo.ready.length ? `
+      <h3 style="margin-top:16px;border-top:1px solid var(--color-line);padding-top:12px">Ready for Handover</h3>
+      ${expo.ready.map(o => `
+        <div class="tcard" style="border-left-color:var(--color-primary);background:var(--color-secondary-tint)">
+          <div class="row">
+            <span class="t">${esc(o.token)}</span>
+            <span class="pill ${o.arrived ? 'champagne' : ''}">${o.arrived ? '📍 Guest Arrived' : 'READY'}</span>
+            <span class="sp"></span>
+            ${o.undoLeftMs ? `<button class="alt sm" data-undo="${o.orderId}">Undo (${Math.ceil(o.undoLeftMs / 1000)}s)</button>` : ''}
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input data-proof="${o.orderId}" placeholder="Enter token or last 4 digits of phone" style="flex:1">
+            <button data-hand="${o.orderId}" class="champagne sm">Hand Over</button>
+          </div>
+        </div>
+      `).join('')}
+    ` : '');
+  };
+
+  const ACTIVE = ['PLACED', 'PAID', 'ACCEPTED', 'SCHEDULED', 'COOKING', 'ASSEMBLY', 'EXPO_CHECK', 'READY', 'HANDED_OVER'];
+
+  const paintOrders = () => {
+    $('orders').innerHTML = orders.filter(o => ACTIVE.includes(o.status) && !(o.status === 'HANDED_OVER' && o.paid)).slice(0, 25).map(o => `
+      <div class="rowi" style="padding:10px 0;border-bottom:1px solid var(--color-line);display:flex;align-items:center;gap:10px">
+        <b class="tok" style="min-width:64px;font-size:16px">${esc(o.token || '—')}</b>
+        <span class="pill ${['READY'].includes(o.status) ? 'champagne' : 'grey'}" style="font-size:11px">${o.status}</span>
+        <span style="flex:1;min-width:140px;font-size:13.5px">
+          ${o.items.map(esc).join(', ')}
+          <div class="mute" style="font-size:12px">
+            ${esc(o.customer)}${o.table ? ' · Table ' + esc(o.table) : ''} · ${rs(o.total)} ${o.paid ? '· Paid' : o.paymentMode === 'TABLE_BILL' ? '· On table bill' : '· Unpaid'}${o.eta ? ' · Ready in ' + o.eta.lo + '–' + o.eta.hi + ' min' : ''}
+          </div>
+        </span>
+        ${!o.paid && o.paymentMode === 'TABLE_BILL' && ['HANDED_OVER', 'READY', 'COOKING', 'SCHEDULED'].includes(o.status) ? 
+          `<button class="sm alt" data-pay="${o.id}">Settle Bill</button>` : ''}
+        ${['PLACED', 'PAID', 'ACCEPTED', 'SCHEDULED', 'COOKING'].includes(o.status) ? 
+          `<button class="sm alt red" data-cancel="${o.id}" style="color:#FFF">Cancel</button>` : ''}
+      </div>
+    `).join('') || '<div class="mute" style="padding:12px 0">No active kitchen orders.</div>';
+  };
+
+  root.onchange = e => {
+    const t = e.target;
+    if (t.dataset.o) {
+      const a = (checked[t.dataset.o] ??= []);
+      const i = a.indexOf(t.dataset.i);
+      if (t.checked && i < 0) a.push(t.dataset.i);
+      if (!t.checked && i >= 0) a.splice(i, 1);
+    }
+  };
+
+  root.onclick = async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const d = b.dataset;
+    try {
+      if (d.ready) {
+        await sapi(`/orders/${d.ready}/ready`, { method: 'POST', body: { checked: checked[d.ready] ?? [] } });
+        toast('Order marked READY (guest notification will dispatch in 20s).');
+      } else if (d.undo) {
+        await sapi(`/orders/${d.undo}/undo-ready`, { method: 'POST', body: {} });
+      } else if (d.hand) {
+        const input = root.querySelector(`[data-proof="${d.hand}"]`);
+        const proof = input ? input.value : '';
+        await sapi(`/orders/${d.hand}/handover`, { method: 'POST', body: { proof } });
+        toast('Order successfully handed over.');
+      } else if (d.pay) {
+        await sapi(`/orders/${d.pay}/pay`, { method: 'POST', body: {} });
+        toast('Table bill settled.');
+      } else if (d.cancel) {
+        if (!confirm('Are you sure you want to cancel this order?')) return;
+        await sapi(`/orders/${d.cancel}/cancel`, { method: 'POST', body: { reason: 'cancelled at counter' } });
+        toast('Order cancelled.');
+      }
+    } catch (err) {
+      toast(err.message + (err.code === 'EXPO_ITEMS_MISSING' ? ' — check all items first.' : ''), 'err');
+    }
+    await load();
+  };
+
+  async function load() {
+    [orders, expo] = await Promise.all([
+      sapi('/staff/orders').then(r => r.orders),
+      sapi('/expo')
+    ]);
+    if (!root.contains(document.activeElement) || document.activeElement.tagName !== 'INPUT') {
+      paintExpo();
+    }
+    paintOrders();
+  }
+
+  api('/menu').then(r => {
+    menu = r.items;
+    paintMenu();
+  });
+  setInterval(() => api('/menu').then(r => {
+    menu = r.items;
+    if (document.activeElement?.id !== 'name' && document.activeElement?.id !== 'phone') paintMenu();
+  }), 20000);
+
+  poll(load, 2000);
+}
+</script>
+</body>
+</html>

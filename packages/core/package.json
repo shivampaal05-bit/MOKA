@@ -1,0 +1,8 @@
+{
+  "name": "@queuebite/core",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure domain engine: order state machine, Smart Queue scheduler, batching, recipe stock ledger, ETA, notifications. No I/O.",
+  "exports": { ".": "./src/index.ts" }
+}
