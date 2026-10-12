@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOKA · Kitchen Display System (KDS)</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="nav"></div>
+<div class="wrap" id="root"></div>
+<div id="footer"></div>
+
+<script type="module">
+import { api, sapi, nav, footer, pinGate, esc, mmss, hhmm, poll, toast, signOut } from './assets/api.js';
+document.getElementById('nav').innerHTML = nav('kds.html');
+document.getElementById('footer').innerHTML = footer();
+
+pinGate('Kitchen Staff', start);
+
+function start() {
+  const root = document.getElementById('root');
+  let station = '';
+  let data = null;
+  const STN = [
+    ['', 'All Stations'],
+    ['bev', 'Beverage & Bar'],
+    ['grill', 'Grill & Toast'],
+    ['fryer', 'Fryer'],
+    ['wok', 'Wok & Pan'],
+    ['cold', 'Cold & Patisserie']
+  ];
+
+  const badge = c => c.mode === 'PREORDER' ? 'P · Pre-order' : c.mode === 'DINE_IN' ? 'T · Dine-in' : 'W · Walk-in';
+
+  const card = (c, kind) => {
+    const cls = `tcard ${kind === 'cook' ? 'cook' : kind === 'up' ? 'up' : ''} ${c.priority > 1 ? 'prio' : ''}`;
+    const timer = kind === 'cook' && c.actualStart ? `<span class="timer" data-end="${c.actualStart + c.cookMs}" style="font-size:16px;background:var(--color-primary-surface);padding:2px 8px;border-radius:4px;border:1px solid var(--color-line)">--:--</span>` : '';
+    const when = kind === 'up' && c.plannedStart ? `<span class="meta" style="font-size:12px">Starts ${hhmm(c.plannedStart)}</span>` : '';
+
+    return `
+      <div class="${cls}">
+        <div class="row" style="margin-bottom:6px">
+          <span class="t">${esc(c.token || '—')}</span>
+          <span class="pill champagne" style="font-size:10.5px">${badge(c)}${c.table ? ' · Table ' + esc(c.table) : ''}</span>
+          <span class="sp"></span>
+          ${timer}
+          ${when}
+        </div>
+        <div style="font-family:var(--font-serif);font-size:17px;font-weight:700;color:var(--color-primary-dark);margin:4px 0">
+          ${c.emoji} ${esc(c.item)}
+        </div>
+        <div class="meta" style="font-size:12px;margin-bottom:8px">
+          Station: <b>${esc(c.station)}</b>${c.batchId ? ' · Batch ' + esc(c.batchId) : ''}${c.arrived ? ' · <span class="pill gold" style="font-size:10px">Guest Present</span>' : ''}
+        </div>
+        <div class="row">
+          ${kind === 'now' ? `<button data-a="start" data-id="${c.id}" class="sm" style="flex:1">▶ Start Prep</button>` : ''}
+          ${kind === 'cook' ? `
+            <button data-a="done" data-id="${c.id}" class="sm champagne" style="flex:1">✔ Mark Cooked</button>
+            <button class="alt sm red" data-a="fail" data-id="${c.id}" style="color:#FFF">Waste / Remake</button>` : ''}
+        </div>
+      </div>`;
+  };
+
+  function paint() {
+    const d = data;
+    if (!d) return;
+
+    root.innerHTML = `
+      <div class="row" style="margin-bottom:12px">
+        <div class="tabs" id="tabs" style="margin:0">
+          ${STN.map(([k, n]) => `<button data-s="${k}" class="${k === station ? 'on' : ''}">${n}</button>`).join('')}
+        </div>
+        <span class="sp"></span>
+        <button class="alt sm" id="out">Sign Out</button>
+      </div>
+
+      ${d.AT_RISK.length ? `
+        <div class="err" style="display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div><b>At-Risk Threshold:</b> ${d.AT_RISK.map(a => `${esc(a.token)} (~${a.readyInMin} min)`).join(' · ')}</div>
+        </div>` : ''}
+
+      ${d.HOLD_ALERTS.length ? `
+        <div class="err" style="background:var(--color-warning-bg);border-color:var(--color-warning);color:var(--color-warning);display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div><b>Hold-Time Exceeded:</b> ${d.HOLD_ALERTS.map(a => `${esc(a.token)} (${esc(a.item)})`).join(' · ')} — re-fire if quality limit reached.</div>
+        </div>` : ''}
+
+      <div class="cols">
+        <div class="col" style="border-top:3px solid var(--color-primary)">
+          <h3><span>READY TO START</span> <span>${d.NOW.length}</span></h3>
+          ${d.NOW.map(c => card(c, 'now')).join('') || '<div class="mute" style="padding:16px 0;text-align:center">No tasks awaiting start.</div>'}
+        </div>
+
+        <div class="col" style="border-top:3px solid var(--color-accent-dark)">
+          <h3><span>CURRENTLY COOKING</span> <span>${d.COOKING.length}</span></h3>
+          ${d.COOKING.map(c => card(c, 'cook')).join('') || '<div class="mute" style="padding:16px 0;text-align:center">Nothing currently cooking.</div>'}
+        </div>
+
+        <div class="col" style="border-top:3px solid var(--color-secondary)">
+          <h3><span>UPCOMING (10 MIN)</span> <span>${d.UPCOMING.length}</span></h3>
+          ${d.UPCOMING.map(c => card(c, 'up')).join('') || '<div class="mute" style="padding:16px 0;text-align:center">No upcoming tasks queued.</div>'}
+        </div>
+
+        <div class="col" style="border-top:3px solid var(--color-line-dark)">
+          <h3><span>SCHEDULED / BLOCKED</span> <span>${d.BLOCKED.length + d.LATER.length}</span></h3>
+          ${d.BLOCKED.map(c => card(c, 'up')).join('')}
+          ${d.LATER.map(c => card(c, 'up')).join('') || (d.BLOCKED.length ? '' : '<div class="mute" style="padding:16px 0;text-align:center">Queue clear.</div>')}
+        </div>
+      </div>`;
+  }
+
+  root.onclick = async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'out') return signOut();
+    if (b.dataset.s !== undefined && b.parentElement.id === 'tabs') {
+      station = b.dataset.s;
+      await load();
+      return;
+    }
+    const id = b.dataset.id, a = b.dataset.a;
+    if (!a) return;
+    try {
+      if (a === 'fail') {
+        const r = prompt('Incident note for inventory waste: (e.g. dropped / burnt / incorrect recipe)', 'dropped');
+        if (r === null) return;
+        await sapi(`/tasks/${id}/fail`, { method: 'POST', body: { reason: r } });
+        toast('Logged to waste ledger; replacement task created.');
+      } else {
+        await sapi(`/tasks/${id}/${a}`, { method: 'POST', body: {} });
+      }
+    } catch (err) {
+      toast(err.message, 'err');
+    }
+    await load();
+  };
+
+  async function load() {
+    data = await sapi('/kds' + (station ? `?station=${station}` : ''));
+    data._at = Date.now();
+    paint();
+  }
+
+  poll(load, 1500);
+
+  setInterval(() => {
+    if (!data) return;
+    const nowK = data.now + (Date.now() - data._at);
+    document.querySelectorAll('.timer').forEach(t => {
+      const left = Number(t.dataset.end) - nowK;
+      t.textContent = mmss(left);
+      t.style.color = left < 0 ? 'var(--color-error)' : 'var(--color-primary-dark)';
+    });
+  }, 500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOKA · Operations &amp; Owner Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="nav"></div>
+<div class="wrap" id="root"></div>
+<div id="footer"></div>
+
+<script type="module">
+import { api, sapi, nav, footer, pinGate, esc, rs, hhmm, poll, toast, signOut } from './assets/api.js';
+document.getElementById('nav').innerHTML = nav('owner.html');
+document.getElementById('footer').innerHTML = footer();
+
+pinGate('Owner / Manager', start);
+
+function start() {
+  const root = document.getElementById('root');
+  const COLORS = {
+    grill: '#7B4D68',
+    fryer: '#C6A77E',
+    wok: '#654765',
+    bev: '#8E7399',
+    cold: '#4F7565',
+    pack: '#A48EAA'
+  };
+
+  root.innerHTML = `
+    <!-- Top Operations KPIs -->
+    <div class="kpis" id="kpis"></div>
+
+    <!-- Kitchen Scheduler Engine & Simulation Controls -->
+    <div class="card elevated" style="margin-top:16px;border-top:3px solid var(--color-primary)">
+      <div class="row" style="margin-bottom:8px">
+        <div>
+          <h2 style="margin:0">MOKA Smart Scheduler Engine</h2>
+          <span class="mute" style="font-size:12px">Continuous deadline pacing &amp; batch optimization</span>
+        </div>
+        <span class="sp"></span>
+        <div class="tabs" id="policy" style="margin:0"></div>
+        <button class="alt sm" id="auto" style="margin-left:6px"></button>
+        <button class="alt sm" id="out">Sign Out</button>
+      </div>
+
+      <p class="mute" style="margin:8px 0 12px;font-size:13px;line-height:1.45">
+        <b>Smart Queue:</b> Backward-plans each item from pickup promise, batches identical cook cycles, and guarantees walk-in fairness.
+      </p>
+
+      <div class="row" id="scn" style="padding:8px 0;border-top:1px solid var(--color-line)"></div>
+      <div class="row" id="units" style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--color-line)"></div>
+    </div>
+
+    <!-- Live Gantt Timeline Chart -->
+    <div class="card elevated">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0">Kitchen Pacing Plan (Next 25 Min)</h2>
+        <span class="sp"></span>
+        <span class="pill champagne" style="font-size:11px">Live Task Gantt</span>
+      </div>
+      <div id="gantt" class="gantt"></div>
+    </div>
+
+    <!-- Operations & Inventory Grid -->
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(380px,1fr));align-items:start">
+      <!-- Inventory Levels & Receiving -->
+      <div class="card elevated">
+        <div class="row" style="margin-bottom:10px">
+          <h2 style="margin:0">Artisan Inventory</h2>
+          <span class="sp"></span>
+          <span class="pill" style="font-size:11px">Recipe Ledger</span>
+        </div>
+        <div id="inv"></div>
+        <div class="row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line)">
+          <select id="ing" style="flex:1"></select>
+          <input id="qty" type="number" placeholder="Qty" style="width:90px">
+          <button class="sm" id="rec">Receive Stock</button>
+          <button class="sm alt" id="adj">Count =</button>
+        </div>
+      </div>
+
+      <!-- Logs & Audit Trail Column -->
+      <div>
+        <div class="card elevated">
+          <div class="row" style="margin-bottom:8px">
+            <h2 style="margin:0">Customer Notifications</h2>
+            <span class="sp"></span>
+            <span class="pill champagne" style="font-size:11px">WhatsApp / SMS</span>
+          </div>
+          <div class="phone" id="msgs" style="max-height:280px;overflow:auto"></div>
+        </div>
+
+        <div class="card elevated">
+          <div class="row" style="margin-bottom:8px">
+            <h2 style="margin:0">Stock Audit Ledger</h2>
+            <span class="sp"></span>
+            <span class="mute" style="font-size:11px">Ingredient Movements</span>
+          </div>
+          <div id="ledger" style="max-height:260px;overflow:auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End of Day Card -->
+    <div class="card elevated" style="background:var(--color-surface-warm)">
+      <div class="row">
+        <div>
+          <b style="color:var(--color-primary-dark)">End of Business Day Operations</b>
+          <div class="mute" style="font-size:12px">Resets daily token sequence (P/T/W) back to 001 and archives shifts.</div>
+        </div>
+        <span class="sp"></span>
+        <button class="alt sm red" id="close" style="color:#FFF">Close Business Day</button>
+      </div>
+    </div>`;
+
+  const $ = id => document.getElementById(id);
+  let stats = null;
+
+  $('out').onclick = signOut;
+
+  $('policy').onclick = async e => {
+    const p = e.target.dataset.p;
+    if (p) {
+      await sapi('/admin/policy', { method: 'POST', body: { policy: p } });
+      await load();
+    }
+  };
+
+  $('auto').onclick = async () => {
+    await sapi('/admin/autopilot', { method: 'POST', body: { on: !stats.autopilot } });
+    await load();
+  };
+
+  $('scn').onclick = async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.s;
+    if (id) {
+      await sapi('/admin/scenario/' + id, { method: 'POST', body: {} });
+      toast('Demo scenario injected into live kitchen.');
+    }
+  };
+
+  $('units').onclick = async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const s = btn.dataset.st;
+    if (s) {
+      await sapi(`/stations/${s}/units`, { method: 'POST', body: { units: Number(btn.dataset.u) } });
+      await load();
+    }
+  };
+
+  $('rec').onclick = async () => {
+    try {
+      await sapi('/inventory/receipt', { method: 'POST', body: { ingredient: $('ing').value, qty: Number($('qty').value) } });
+      toast('Stock batch received.');
+      await load();
+    } catch (e) {
+      toast(e.message, 'err');
+    }
+  };
+
+  $('adj').onclick = async () => {
+    try {
+      const r = await sapi('/inventory/adjust', { method: 'POST', body: { ingredient: $('ing').value, counted: Number($('qty').value), note: 'physical count' } });
+      toast('Inventory adjusted by ' + r.diff);
+      await load();
+    } catch (e) {
+      toast(e.message, 'err');
+    }
+  };
+
+  $('close').onclick = async () => {
+    if (confirm('Close today’s business day? Tokens will reset.')) {
+      await sapi('/admin/close-day', { method: 'POST', body: {} });
+      toast('Business day closed.');
+      await load();
+    }
+  };
+
+  async function load() {
+    const [st, plan, inv, led, ntf] = await Promise.all([
+      sapi('/admin/stats'),
+      sapi('/admin/plan'),
+      sapi('/inventory'),
+      sapi('/ledger'),
+      sapi('/admin/notifications')
+    ]);
+    stats = st;
+
+    const by = st.byStatus;
+    const active = ['ACCEPTED', 'SCHEDULED', 'COOKING', 'ASSEMBLY', 'EXPO_CHECK', 'READY'].reduce((s, k) => s + (by[k] || 0), 0);
+
+    $('kpis').innerHTML = [
+      ['Orders Today', st.orders],
+      ['In Progress', active],
+      ['Gross Revenue', rs(st.revenue)],
+      ['Wait P50 (Present)', st.presentWaitP50 + ' min'],
+      ['Wait P90 (Peak)', st.presentWaitP90 + ' min'],
+      ['Completed Orders', by.COMPLETED || 0]
+    ].map(([k, v]) => `
+      <div class="card elevated">
+        <div class="mute" style="font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em">${k}</div>
+        <div class="kpi">${v}</div>
+      </div>
+    `).join('');
+
+    $('policy').innerHTML = ['smart', 'deadline', 'fifo'].map(p => `
+      <button data-p="${p}" class="${st.policy === p ? 'on' : ''}">
+        ${p === 'smart' ? 'Smart Queue' : p === 'fifo' ? 'FIFO Baseline' : 'Deadline-First'}
+      </button>
+    `).join('');
+
+    $('auto').textContent = st.autopilot ? '⏸ Pause Autopilot Crew' : '▶ Run Autopilot Crew';
+    $('auto').title = 'Simulates kitchen cooks executing scheduled orders automatically';
+
+    $('scn').innerHTML = '<span class="mute" style="font-size:12px;font-weight:600">Simulate Scenario:</span> ' + 
+      st.scenarios.map(s => `<button class="sm alt" data-s="${s.id}">${esc(s.title)}</button>`).join(' ');
+
+    $('units').innerHTML = '<span class="mute" style="font-size:12px;font-weight:600">Active Units Online:</span> ' + 
+      Object.entries(st.unitsOnline).map(([k, v]) => `
+        <span class="pill ${v === 0 ? 'red' : 'champagne'}" style="margin:2px 4px">${k}: ${v}</span>
+        <button class="alt sm" data-st="${k}" data-u="${Math.max(0, v - 1)}">−</button>
+        <button class="alt sm" data-st="${k}" data-u="${v + 1}">+</button>
+      `).join(' ');
+
+    // Gantt Schedule Drawing
+    const t0 = plan.now;
+    const span = 25 * 60000;
+    const lanes = {};
+    for (const t of plan.tasks) {
+      if (t.station !== 'pack' && t.start != null) {
+        (lanes[t.station + ' ' + (t.unit + 1)] ??= []).push(t);
+      }
+    }
+
+    $('gantt').innerHTML = Object.keys(lanes).sort().map(l => `
+      <div class="lane">
+        <b>${l}</b>
+        <div class="track">
+          ${lanes[l].map(t => {
+            const left = Math.max(0, (t.start - t0) / span * 100);
+            const w = Math.max(1.5, ((t.end ?? t.start + 240000) - Math.max(t.start, t0)) / span * 100);
+            const bg = COLORS[t.station] || 'var(--color-primary)';
+            return `<div class="blk" title="${esc(t.item)} ${esc(t.token)} ${t.status}" style="left:${left}%;width:${Math.min(w, 100 - left)}%;background:${bg};opacity:${t.status === 'PLANNED' ? 0.6 : 1}">
+              ${esc(t.token)} ${esc(t.item)}
+            </div>`;
+          }).join('')}
+          <div class="now" style="left:0"></div>
+        </div>
+      </div>
+    `).join('') || '<div class="mute" style="padding:16px 0;text-align:center">No active tasks in window. Trigger a scenario above to observe the scheduler.</div>';
+
+    // Inventory Table
+    $('inv').innerHTML = `
+      <table>
+        <tr>
+          <th>Ingredient</th>
+          <th>Available</th>
+          <th>Status</th>
+        </tr>
+        ${inv.items.map(i => {
+          const pct = Math.max(0, Math.min(100, i.available / Math.max(1, i.reorderLevel * 4) * 100));
+          const cls = i.status === 'Finished' ? 'out' : i.status === 'Low soon' || i.status === 'Order now' ? 'low' : '';
+          return `
+            <tr>
+              <td><b>${esc(i.name)}</b></td>
+              <td>
+                ${i.available} ${esc(i.unit)}
+                <div class="stock">
+                  <i class="${cls}" style="width:${pct}%;background:${cls ? '' : 'var(--color-primary)'}"></i>
+                </div>
+              </td>
+              <td>
+                <span class="pill ${i.status === 'OK' ? 'champagne' : i.status === 'Finished' ? 'red' : 'amber'}">${esc(i.status)}</span>
+              </td>
+            </tr>`;
+        }).join('')}
+      </table>`;
+
+    if (!$('ing').options.length) {
+      $('ing').innerHTML = inv.items.map(i => `<option value="${i.id}">${esc(i.name)} (${esc(i.unit)})</option>`).join('');
+    }
+
+    // Ledger Movements
+    $('ledger').innerHTML = `
+      <table>
+        <tr>
+          <th>Type</th>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Reference</th>
+        </tr>
+        ${led.entries.slice(0, 40).map(l => `
+          <tr>
+            <td><span class="pill grey" style="font-size:10px">${l.type}</span></td>
+            <td><b>${esc(l.ingredient)}</b></td>
+            <td>${l.qty}</td>
+            <td class="mute">${esc(l.ref || l.note || '')}</td>
+          </tr>`).join('')}
+      </table>`;
+
+    // Customer Messages
+    $('msgs').innerHTML = ntf.notifications.map(n => `
+      <div class="msg">
+        <b>${n.channel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'} · ${esc(n.animation)} animation · ${hhmm(n.at)}</b>
+        ${esc(n.text)}
+      </div>`).join('') || '<div class="mute" style="padding:12px 0;text-align:center">No notifications recorded yet.</div>';
+  }
+
+  poll(load, 2000);
+}
+</script>
+</body>
+</html>

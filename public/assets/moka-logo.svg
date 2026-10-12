@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 160" width="460" height="160">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap');
+      .brand-title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 78px;
+        font-weight: 800;
+        fill: #F5EFE8;
+        letter-spacing: 0.08em;
+      }
+      .tagline-fix {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 26px;
+        font-style: italic;
+        font-weight: 600;
+        fill: #C6A77E;
+        letter-spacing: 0.04em;
+      }
+      .brand-desc {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        fill: #F5EFE8;
+        opacity: 0.92;
+      }
+    </style>
+  </defs>
+
+  <!-- Letter M -->
+  <path d="M 38 90 L 38 32 L 44 32 L 67 74 L 90 32 L 96 32 L 96 90 L 87 90 L 87 46 L 69 82 L 65 82 L 47 46 L 47 90 Z" fill="#F5EFE8"/>
+  <rect x="33" y="31" width="13" height="3" fill="#F5EFE8"/>
+  <rect x="33" y="88" width="13" height="3" fill="#F5EFE8"/>
+  <rect x="90" y="31" width="13" height="3" fill="#F5EFE8"/>
+  <rect x="90" y="88" width="13" height="3" fill="#F5EFE8"/>
+
+  <!-- Letter O with tilted Coffee Bean Counter Motif -->
+  <g transform="translate(142, 61)">
+    <!-- Outer Oval O -->
+    <ellipse cx="0" cy="0" rx="34" ry="30" fill="#F5EFE8"/>
+    <!-- Inner Dark Plum Core -->
+    <ellipse cx="0" cy="0" rx="20" ry="24" fill="#654765" transform="rotate(-15)"/>
+    <!-- Coffee Bean Split Line in Ivory & Champagne -->
+    <path d="M -5 -21 C -2 -10, 4 -2, 2 5 C 0 12, -4 18, 0 21" stroke="#F5EFE8" stroke-width="3" stroke-linecap="round" fill="none" transform="rotate(-15)"/>
+    <ellipse cx="2" cy="0" rx="3" ry="5" fill="#C6A77E" opacity="0.8" transform="rotate(-15)"/>
+  </g>
+
+  <!-- Letter K -->
+  <g transform="translate(202, 31)">
+    <!-- Vertical Stem -->
+    <rect x="0" y="0" width="9.5" height="59" fill="#F5EFE8"/>
+    <rect x="-4" y="0" width="14" height="3" fill="#F5EFE8"/>
+    <rect x="-4" y="56" width="14" height="3" fill="#F5EFE8"/>
+    <!-- Upper Diagonal -->
+    <path d="M 8 34 L 38 0 L 51 0 L 16 38 Z" fill="#F5EFE8"/>
+    <!-- Lower Diagonal with outward curved tail -->
+    <path d="M 12 33 L 42 59 L 55 59 C 48 55, 34 42, 26 31 Z" fill="#F5EFE8"/>
+  </g>
+
+  <!-- Letter A with extended graceful flourish -->
+  <g transform="translate(286, 31)">
+    <!-- Left diagonal -->
+    <path d="M 28 0 L 0 59 L 10 59 L 24 28 L 44 28 L 52 46 C 56 55, 62 58, 70 59 L 72 59 C 64 57, 58 52, 54 44 L 33 0 Z" fill="#F5EFE8"/>
+    <!-- Crossbar -->
+    <rect x="18" y="38" width="30" height="4" fill="#F5EFE8"/>
+    <rect x="-3" y="56" width="14" height="3" fill="#F5EFE8"/>
+  </g>
+
+  <!-- Tagline: "Your Daily Fix" in Champagne Editorial Serif -->
+  <text x="210" y="122" text-anchor="middle" class="tagline-fix">Your Daily Fix</text>
+
+  <!-- Subtitle: CRAFTED COFFEE • FRESH BAKES • ALL DAY, ALL NIGHT -->
+  <text x="210" y="148" text-anchor="middle" class="brand-desc">
+    CRAFTED COFFEE &nbsp;•&nbsp; FRESH BAKES &nbsp;•&nbsp; ALL DAY, ALL NIGHT
+  </text>
+</svg>

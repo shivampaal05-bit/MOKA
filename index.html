@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOKA · Your Daily Fix · Order Online</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="nav"></div>
+
+<div class="wrap narrow">
+  <!-- MOKA Artisan Coffee & Bakery Hero Banner -->
+  <div class="card elevated" style="padding:0;overflow:hidden;border:1px solid var(--color-accent);margin-bottom:18px">
+    <div style="position:relative;width:100%;max-height:260px;overflow:hidden;background:#654765">
+      <img src="assets/moka_hero.jpg" alt="MOKA Crafted Coffee & Fresh Bakes" style="width:100%;height:260px;object-fit:cover;display:block">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(74,50,74,0.95) 0%, rgba(74,50,74,0.5) 60%, transparent 100%);padding:18px 20px 14px;color:#FFFFFF">
+        <div style="font-family:var(--font-serif);font-size:24px;font-weight:700;margin-bottom:2px">
+          MOKA <span style="font-family:var(--font-sans);font-weight:400;font-size:15px;color:var(--color-accent)">· Your Daily Fix</span>
+        </div>
+        <div style="font-size:12px;color:#F5EFE8;letter-spacing:0.04em">
+          Crafted Coffee • Fresh Bakes • All Day, All Night
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--color-primary-dark);color:#FFFFFF;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="pill champagne" style="font-size:11px;letter-spacing:0.08em;font-weight:700">MOKA FLAGSHIP</span>
+        <span style="font-size:12.5px;color:var(--color-secondary-tint);letter-spacing:0.04em">HOTEL BUDDHA AVENUE • GORAKHPUR</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a href="#brandBoard" id="openBrandModal" style="color:#C6A77E;font-size:12px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px">
+          <span>Brand Guide</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        </a>
+        <div style="display:flex;align-items:center;gap:5px;margin-left:4px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#654765;border:1px solid #FFF;display:inline-block" title="Plum Purple #654765"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#BFA9C7;border:1px solid #FFF;display:inline-block" title="Dusty Lilac #BFA9C7"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#F5EFE8;border:1px solid #654765;display:inline-block" title="Ivory #F5EFE8"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#C6A77E;border:1px solid #FFF;display:inline-block" title="Champagne #C6A77E"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Board Modal -->
+  <div id="brandModal" style="display:none;position:fixed;inset:0;background:rgba(43,29,43,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">
+    <div style="background:#FFF;max-width:800px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);border:2px solid var(--color-accent);position:relative">
+      <div style="background:#4A324A;color:#FFF;padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-weight:700;font-family:var(--font-serif);letter-spacing:0.05em">MOKA Official Brand Identity Guide</span>
+        <button id="closeBrandModal" style="background:transparent;border:none;color:#FFF;font-size:20px;cursor:pointer;padding:0 6px">✕</button>
+      </div>
+      <div style="max-height:75vh;overflow-y:auto;padding:12px;background:#F5EFE8;text-align:center">
+        <img src="assets/moka_brand_board.jpg" alt="MOKA Brand Identity Reference" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.1)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Editorial Brand Promises from Reference Image -->
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card elevated" style="background:#654765;color:#F5EFE8;padding:16px;border-left:4px solid var(--color-accent);margin-bottom:0">
+      <div style="font-family:var(--font-serif);font-size:18px;font-weight:700;line-height:1.25">
+        Good coffee, <span style="font-style:italic;color:#BFA9C7;font-weight:500">brighter days.</span>
+      </div>
+      <div style="width:40px;height:2px;background:#C6A77E;margin:8px 0"></div>
+      <span style="font-size:11.5px;color:#F5EFE8;opacity:0.85;letter-spacing:0.03em">Masterfully roasted single-origin espresso &amp; velvety brew.</span>
+    </div>
+
+    <div class="card elevated" style="background:#654765;color:#F5EFE8;padding:16px;border-left:4px solid var(--color-accent);margin-bottom:0">
+      <div style="font-family:var(--font-serif);font-size:18px;font-weight:700;line-height:1.25">
+        Fresh bakes, <span style="font-style:italic;color:#BFA9C7;font-weight:500">anytime.</span>
+      </div>
+      <div style="width:40px;height:2px;background:#C6A77E;margin:8px 0"></div>
+      <span style="font-size:11.5px;color:#F5EFE8;opacity:0.85;letter-spacing:0.03em">Flaky golden croissants and oven-warm artisan pastries.</span>
+    </div>
+  </div>
+
+  <!-- Ordering Mode Card -->
+  <div class="card elevated">
+    <h2>Select Your Experience</h2>
+    <div class="tabs" id="modes">
+      <button data-m="PREORDER" class="on">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        Pre-order &amp; Pickup
+      </button>
+      <button data-m="DINE_IN">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+        Dine-in Table
+      </button>
+      <button data-m="TAKEAWAY">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        Counter Takeaway
+      </button>
+    </div>
+    <div id="modeHelp" class="mute" style="font-size:13px;line-height:1.45"></div>
+  </div>
+
+  <!-- Menu Card -->
+  <div class="card elevated">
+    <div class="row" style="margin-bottom:8px">
+      <h2 style="margin:0">Artisan Menu</h2>
+      <span class="sp"></span>
+      <span class="pill champagne">Freshly Prepared</span>
+    </div>
+    <div id="menu"></div>
+  </div>
+
+  <!-- Customer Details Card -->
+  <div class="card elevated">
+    <h2>Customer Information</h2>
+    <div class="grid g2">
+      <div>
+        <label>Your Name</label>
+        <input id="name" value="Guest" placeholder="Enter full name">
+      </div>
+      <div>
+        <label>WhatsApp / Mobile Number</label>
+        <input id="phone" value="9876543210" inputmode="tel" placeholder="10-digit mobile number">
+      </div>
+    </div>
+
+    <div id="preFields" style="margin-top:10px">
+      <div class="grid g2">
+        <div>
+          <label>Distance From MOKA</label>
+          <select id="dist">
+            <option value="0.5">500 meters (~4 min away)</option>
+            <option value="1" selected>1 km (~6 min away)</option>
+            <option value="1.5">1.5 km (~9 min away)</option>
+            <option value="2">2 km (~12 min away)</option>
+          </select>
+        </div>
+        <div>
+          <label>Pickup Preference</label>
+          <select id="slot">
+            <option value="">Earliest possible (fresh on arrival)</option>
+            <option value="10">In 10 minutes</option>
+            <option value="15">In 15 minutes</option>
+            <option value="20">In 20 minutes</option>
+            <option value="30">In 30 minutes</option>
+            <option value="45">In 45 minutes</option>
+            <option value="60">In 60 minutes</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="tableField" style="display:none;margin-top:10px">
+      <label>Table Number</label>
+      <input id="table" value="4" placeholder="e.g. Table 4">
+    </div>
+  </div>
+
+  <!-- Total & Checkout Card -->
+  <div class="card elevated" style="border-top:3px solid var(--color-primary)">
+    <div class="row" style="padding-bottom:12px;border-bottom:1px solid var(--color-line)">
+      <div>
+        <h2 style="margin:0;font-size:18px">Order Summary</h2>
+        <span class="mute" style="font-size:12px">Prices include all kitchen taxes</span>
+      </div>
+      <span class="sp"></span>
+      <div style="text-align:right">
+        <span class="mute" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Total Due</span>
+        <b id="total" class="big" style="display:block;font-size:28px;color:var(--color-primary-dark)">₹0</b>
+      </div>
+    </div>
+
+    <div id="msg"></div>
+
+    <div class="row" style="margin-top:14px">
+      <button id="place" style="flex:1;padding:12px 18px;font-size:15px;letter-spacing:0.02em">
+        Confirm &amp; Place Order
+      </button>
+    </div>
+    <p class="mute" style="font-size:12px;margin:10px 0 0;line-height:1.45;text-align:center">
+      Prices and real-time ingredients are verified directly with the MOKA kitchen engine. Pre-orders are confirmed after instant payment.
+    </p>
+  </div>
+</div>
+
+<div id="footer"></div>
+
+<script type="module">
+import { api, idem, rs, esc, nav, footer } from './assets/api.js';
+document.getElementById('nav').innerHTML = nav('index.html');
+document.getElementById('footer').innerHTML = footer();
+
+let mode = 'PREORDER', menu = [], cart = {}, key = idem();
+const help = {
+  PREORDER: 'Order ahead from 1–2 km away. We pace your brew and bake so everything is at peak temperature the moment you pull up.',
+  DINE_IN: 'Seated at one of our tables? Your artisan order fires immediately and can be settled upon completion.',
+  TAKEAWAY: 'At the counter? Collect a digital token and watch the live lobby board while we prepare your fresh items.'
+};
+
+function paint() {
+  document.getElementById('modeHelp').textContent = help[mode];
+  document.getElementById('preFields').style.display = mode === 'PREORDER' ? '' : 'none';
+  document.getElementById('tableField').style.display = mode === 'DINE_IN' ? '' : 'none';
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  document.getElementById('menu').innerHTML = menu.map(m => `
+    <div class="item">
+      <span class="em">${m.emoji}</span>
+      <div class="nm">
+        ${esc(m.name)}
+        <small>${rs(m.price)} · ~${m.cookMin} min${m.available ? '' : ' · <b style="color:var(--color-error)">sold out</b>'}</small>
+      </div>
+      <div class="qty">
+        <button class="alt" data-id="${m.id}" data-d="-1" ${m.available ? '' : 'disabled'}>−</button>
+        <b style="min-width:22px;text-align:center;font-size:14px;color:var(--color-ink)">${cart[m.id] || 0}</b>
+        <button data-id="${m.id}" data-d="1" ${m.available ? '' : 'disabled'}>+</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('total').textContent = rs(menu.reduce((s, m) => s + (cart[m.id] || 0) * m.price, 0));
+}
+
+document.getElementById('modes').onclick = e => {
+  const btn = e.target.closest('button');
+  if (btn && btn.dataset.m) {
+    mode = btn.dataset.m;
+    paint();
+  }
+};
+
+document.getElementById('menu').onclick = e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (!id) return;
+  cart[id] = Math.max(0, Math.min(20, (cart[id] || 0) + Number(btn.dataset.d)));
+  key = idem();
+  paint();
+};
+
+async function load() {
+  try {
+    const res = await api('/menu');
+    menu = res.items;
+    paint();
+  } catch (err) {
+    console.error('Menu load failed', err);
+  }
+}
+load();
+setInterval(load, 15000);
+
+const show = (t, c = 'err') => document.getElementById('msg').innerHTML = t ? `<div class="${c}">${t}</div>` : '';
+
+// Brand Modal Controls
+const modal = document.getElementById('brandModal');
+const openBtn = document.getElementById('openBrandModal');
+const closeBtn = document.getElementById('closeBrandModal');
+if (openBtn && modal) openBtn.onclick = (e) => { e.preventDefault(); modal.style.display = 'flex'; };
+if (closeBtn && modal) closeBtn.onclick = () => { modal.style.display = 'none'; };
+if (modal) modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+document.getElementById('place').onclick = async () => {
+  const items = Object.entries(cart).filter(([, q]) => q > 0).map(([menuItemId, qty]) => ({ menuItemId, qty }));
+  if (!items.length) return show('Please add at least one artisan item to your order.');
+  
+  const nameEl = document.getElementById('name');
+  const phoneEl = document.getElementById('phone');
+  const distEl = document.getElementById('dist');
+  const slotEl = document.getElementById('slot');
+  const tableEl = document.getElementById('table');
+
+  const customerName = (nameEl ? nameEl.value : '').trim();
+  const customerPhone = (phoneEl ? phoneEl.value : '').trim();
+
+  if (!customerName) return show('Please enter your name.');
+  if (!customerPhone || !/^\+?\d{8,15}$/.test(customerPhone.replace(/\s/g, ''))) {
+    return show('Please enter a valid 10-digit mobile number.');
+  }
+
+  const body = {
+    channel: mode === 'PREORDER' ? 'WEB' : 'QR',
+    mode,
+    customer: { name: customerName, phone: customerPhone },
+    items
+  };
+  if (mode === 'PREORDER') {
+    body.distanceKm = Number(distEl ? distEl.value : 1);
+    if (slotEl && slotEl.value) body.slotInMin = Number(slotEl.value);
+  }
+  if (mode === 'DINE_IN') {
+    body.table = (tableEl ? tableEl.value : '1').trim() || '1';
+  }
+
+  const btn = document.getElementById('place');
+  btn.disabled = true;
+  show('Securing kitchen preparation slot…', 'ok');
+
+  try {
+    const r = await api('/orders', { method: 'POST', body, headers: { 'idempotency-key': key } });
+    const o = r.order;
+    localStorage.setItem('qb_last', JSON.stringify({ id: o.id, key: o.accessKey }));
+    
+    if (r.payment && r.payment.required) {
+      // In this demo environment, complete demo payment and route smoothly to live tracking
+      try {
+        await api(`/dev/pay/${o.id}?key=${o.accessKey}`, { method: 'POST' });
+        location.href = `track.html?o=${o.id}&key=${o.accessKey}`;
+      } catch (payErr) {
+        show(`Order placed! Complete ${rs(r.payment.amount)} to confirm: <button id="pay" class="sm champagne" style="margin-left:10px;font-weight:700">Pay Now (Demo)</button>`, 'ok');
+        const payBtn = document.getElementById('pay');
+        if (payBtn) payBtn.onclick = async () => {
+          await api(`/dev/pay/${o.id}?key=${o.accessKey}`, { method: 'POST' });
+          location.href = `track.html?o=${o.id}&key=${o.accessKey}`;
+        };
+      }
+    } else {
+      location.href = `track.html?o=${o.id}&key=${o.accessKey}`;
+    }
+  } catch (e) {
+    if (e.code === 'STOCK_SHORT') {
+      show('Stock shortage: ' + Object.entries(e.details.short).map(([k, v]) => `${k} (${v.available} left)`).join(', ') + '. Please adjust your selection.');
+    } else if (e.code === 'SLOT_UNAVAILABLE') {
+      show(`That pickup time is too early for the kitchen. Earliest available: in ${e.details.suggestedSlotInMin} min. <button class="sm champagne" id="use" style="margin-left:8px">Use Time</button>`);
+      const slotElement = document.getElementById('slot');
+      const useBtn = document.getElementById('use');
+      if (useBtn && slotElement) useBtn.onclick = () => {
+        slotElement.innerHTML += `<option selected value="${e.details.suggestedSlotInMin}">In ${e.details.suggestedSlotInMin} minutes</option>`;
+        slotElement.value = e.details.suggestedSlotInMin;
+        show('');
+      };
+    } else if (e.code === 'CAPACITY') {
+      show(`The kitchen is experiencing peak volume. Items would be ready in ~${e.details?.wouldBeReadyInMin ?? '?'} min. Please retry in a few moments${mode !== 'PREORDER' ? ' or select a scheduled slot.' : '.'}`);
+    } else {
+      show(esc(e.message));
+    }
+  } finally {
+    btn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOKA · Lobby Display Board</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/app.css">
+  <style>
+    body {
+      background: var(--color-background);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .tv-header-strip {
+      background: var(--color-primary-dark);
+      color: #FFFFFF;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--color-accent);
+    }
+    .tv-clock {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-accent);
+      letter-spacing: 0.05em;
+    }
+    .tv-board-wrap {
+      flex: 1;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+<div id="nav"></div>
+
+<div class="tv-header-strip">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="pill champagne" style="font-size:12px;letter-spacing:0.06em">MOKA LIVE KITCHEN</span>
+    <span style="font-size:13px;color:var(--color-secondary-tint)">Crafted Coffee • Fresh Bakes • Live Orders</span>
+  </div>
+  <div id="clock" class="tv-clock">--:--:--</div>
+</div>
+
+<div class="tv-board-wrap">
+  <div class="tvgrid">
+    <!-- Preparing Column -->
+    <div class="card elevated" style="border-top:4px solid var(--color-secondary-dark);min-height:480px;text-align:center;padding:24px">
+      <p class="tvh" style="color:var(--color-ink)">
+        Currently Brewing &amp; Baking
+      </p>
+      <div class="mute" style="margin-bottom:20px;font-size:13px">Preparing with artisan care</div>
+      <div id="prep" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px"></div>
+    </div>
+
+    <!-- Ready for Collection Column -->
+    <div class="card elevated tvready" style="border-top:4px solid var(--color-accent);min-height:480px;text-align:center;padding:24px;background:var(--color-surface-warm)">
+      <p class="tvh" style="color:var(--color-primary-dark)">
+        Ready for Collection
+      </p>
+      <div class="mute" style="margin-bottom:20px;font-size:13px">Please present your token at the pickup counter</div>
+      <div id="ready" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px"></div>
+    </div>
+  </div>
+
+  <p class="mute" style="text-align:center;margin-top:24px;font-size:12.5px;letter-spacing:0.04em">
+    TOKEN BOARD ONLY · Customer names and telephone numbers are kept strictly confidential.
+  </p>
+</div>
+
+<div id="footer"></div>
+
+<script type="module">
+import { api, nav, footer, esc, poll } from './assets/api.js';
+document.getElementById('nav').innerHTML = nav('tv.html');
+document.getElementById('footer').innerHTML = footer();
+
+function tickClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN', { hour12: false, timeZone: 'Asia/Kolkata' });
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+poll(async () => {
+  const b = await api('/board');
+  document.getElementById('prep').innerHTML = b.preparing.map(t => `<span class="tvtok">${esc(t)}</span>`).join('') || '<span class="mute" style="font-size:18px;margin:20px 0">— Queue Clear —</span>';
+  document.getElementById('ready').innerHTML = b.ready.map(t => `<span class="tvtok">${esc(t)}</span>`).join('') || '<span class="mute" style="font-size:18px;margin:20px 0">— None Pending —</span>';
+}, 1500);
+</script>
+</body>
+</html>
