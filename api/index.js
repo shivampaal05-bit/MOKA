@@ -1622,11 +1622,14 @@ async function handler(req, res) {
   try {
     const proto = req.headers["x-forwarded-proto"] || "https";
     const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost";
-    let reqUrl = req.url || "/";
-    if (req.headers["x-matched-path"]) {
-      reqUrl = req.headers["x-matched-path"];
+    const rawUrl = new URL(req.url || "/", `${proto}://${host}`);
+    let reqPath = rawUrl.searchParams.get("path") || req.headers["x-matched-path"] || rawUrl.pathname;
+    rawUrl.searchParams.delete("path");
+    if (reqPath.startsWith("/api") && reqPath.length > 4) {
+      reqPath = reqPath.slice(4);
     }
-    const fullUrl = new URL(reqUrl, `${proto}://${host}`);
+    const query = rawUrl.search ? rawUrl.search : "";
+    const fullUrl = new URL(reqPath + query, `${proto}://${host}`);
     let body = void 0;
     if (req.method === "POST") {
       if (typeof req.body === "string") {
