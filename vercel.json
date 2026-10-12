@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/(health|menu|board|orders|webhooks|dev|staff|kds|expo|tasks|stations|stream|inventory|ledger|admin)(.*)",
-      "destination": "/api/index"
+      "destination": "/api/index.js"
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/index.js"
     }
   ]
 }
